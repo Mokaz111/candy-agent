@@ -1,0 +1,39 @@
+hertz:
+  address: ":8080"
+  enable_pprof: true
+  enable_gzip: true
+  enable_access_log: true
+  log_level: info
+  log_file_name: "log/hertz.log"
+  log_max_size: 10
+  log_max_age: 3
+  log_max_backups: 50
+  read_timeout: 60
+  write_timeout: 60
+  max_header_bytes: 1048576
+
+# Candy-Server 配置
+candy_server:
+  url: "http://candy-server:18080"
+  api_key: "sangfor.api.key"
+
+# Agent 配置
+agent:
+  id: "agent-001"
+  heartbeat_interval: 30 # 秒
+  cluster_name: "sz3-sre-cluster"
+
+# 执行器配置
+executors:
+  prometheus:
+    url: "http://prometheus:9090"
+    timeout: 15 # 秒
+
+  vm:
+    url: "http://10.103.0.4:30427"
+    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJUZW5hbnROYW1lIjoiMTNlNTY1NTVjYzI0MDYyMDI0YmYyZjNhOTdjZDVlNTciLCJpYXQiOjE2OTU4NzAzNDcsImlzcyI6InZpY3RvcmlhbWV0cmljIn0.SScJNyvs3CA37kBr5SJc_66VSW9Mv_7GENBgfbNGFTg"
+    timeout: 15 # 秒
+
+  ssh:
+    timeout: 30 # 秒
+    connection_timeout: 10 # 秒

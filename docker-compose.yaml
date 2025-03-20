@@ -1,0 +1,25 @@
+version: '3'
+services:
+  candy-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: candy-agent:latest
+    container_name: candy-agent
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - GO_ENV=prod
+      - CANDY_AGENT_ID=agent-001
+      - CANDY_SERVER_URL=http://candy-server:8080
+      - CANDY_CLUSTER_NAME=default-cluster
+    volumes:
+      - ./conf:/app/conf
+      - ./log:/app/log
+    networks:
+      - candy-network
+
+networks:
+  candy-network:
+    driver: bridge

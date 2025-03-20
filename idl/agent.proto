@@ -1,0 +1,265 @@
+syntax = "proto3";
+
+package candyAgent;
+
+option go_package = "candyAgent";
+
+
+import "api.proto";
+
+
+// 任务状态
+enum TaskStatus {
+  TASK_STATUS_UNKNOWN = 0;
+  TASK_STATUS_PENDING = 1;
+  TASK_STATUS_RUNNING = 2;
+  TASK_STATUS_COMPLETED = 3;
+  TASK_STATUS_FAILED = 4;
+  TASK_STATUS_CANCELED = 5;
+}
+
+// 结果状态
+enum ResultStatus {
+  RESULT_STATUS_UNKNOWN = 0;
+  RESULT_STATUS_NORMAL = 1;
+  RESULT_STATUS_WARNING = 2;
+  RESULT_STATUS_FAILED = 3;
+}
+
+// 配置类型
+enum ConfigType {
+  CONFIG_TYPE_UNKNOWN = 0;
+  CONFIG_TYPE_ALERT_RULES = 1;
+  CONFIG_TYPE_AGENT = 2;
+}
+
+// 任务项
+message TaskItem {
+  int64 id = 1;
+  string name = 2;
+  string type = 3;
+  map<string, string> params = 4;
+}
+
+// 任务结果
+message TaskResult {
+  int64 item_id = 1;
+  ResultStatus status = 2;
+  string message = 3;
+  string details = 4;
+  int64 duration = 5; // 毫秒
+  string value = 6;   // 结果值
+}
+
+// 任务请求
+message TaskRequest {
+  string task_id = 1;
+  repeated TaskItem items = 2;
+  int32 timeout = 3; // 秒
+}
+
+// 任务响应
+message TaskResponse {
+  string task_id = 1;
+  TaskStatus status = 2;
+  repeated TaskResult results = 3;
+  string start_time = 4;
+  string end_time = 5;
+  string message = 6;
+}
+
+// 任务状态请求
+message TaskStatusRequest {
+  string task_id = 1;
+}
+
+// 任务状态响应
+message TaskStatusResponse {
+  string task_id = 1;
+  TaskStatus status = 2;
+  string start_time = 3;
+  string message = 4;
+}
+
+// 任务取消请求
+message TaskCancelRequest {
+  string task_id = 1;
+}
+
+// 任务取消响应
+message TaskCancelResponse {
+  string task_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// 心跳请求
+message HeartbeatRequest {
+  string agent_id = 1;
+  string status = 2;
+  string version = 3;
+  ClusterInfo cluster_info = 4;
+  string timestamp = 5;
+  string agent_endpoint = 6;
+  string api_key = 7;
+}
+
+// 心跳响应
+message HeartbeatResponse {
+  string server_time = 1;
+  string message = 2;
+}
+
+// 集群信息
+message ClusterInfo {
+  string name = 1;
+  int32 nodes = 2;
+  string kubernetes_version = 3;
+  double cpu_usage = 4;
+  double memory_usage = 5;
+  double disk_usage = 6;
+}
+
+// 告警规则配置
+message AlertRulesConfig {
+  string prometheus_rules = 1;
+  string vm_rules = 2;
+}
+
+// Agent配置
+message AgentConfig {
+  int32 heartbeat_interval = 1;
+  string log_level = 2;
+}
+
+// 配置更新请求
+message ConfigUpdateRequest {
+  ConfigType config_type = 1;
+  oneof config {
+    AlertRulesConfig alert_rules_config = 2;
+    AgentConfig agent_config = 3;
+  }
+}
+
+// 配置更新响应
+message ConfigUpdateResponse {
+  string message = 1;
+}
+
+// 健康检查响应
+message HealthResponse {
+  string status = 1;
+  string version = 2;
+  string uptime = 3;
+}
+message Empty {}
+
+// 告警规则请求
+message AlertRuleRequest {
+  string action = 1;     // 操作类型：create, update, delete, get, list, sync
+  uint32 rule_id = 2;    // 规则ID（用于update, delete, get）
+  string name = 3;       // 规则名称
+  string type = 4;       // 规则类型：prometheus, vm
+  string content = 5;    // 规则内容
+  string config_map = 6; // ConfigMap 名称
+  string namespace = 7;  // 命名空间
+  string key = 8;        // ConfigMap 中的键
+}
+
+// 告警规则
+message AlertRule {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  uint32 cluster_id = 4;
+  string type = 5;
+  string content = 6;
+  string config_map = 7;
+  string namespace = 8;
+  string key = 9;
+  int32 status = 10;
+  uint32 created_by = 11;
+  string kind = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+// 告警规则响应
+message AlertRuleResponse {
+  bool success = 1;           // 是否成功
+  string message = 2;         // 消息
+  AlertRule rule = 3;         // 单个规则（用于get）
+  repeated AlertRule rules = 4; // 规则列表（用于list）
+  string error = 5;           // 错误信息
+}
+
+// Agent服务
+service AgentService {
+  // 执行任务
+  rpc ExecuteTask(TaskRequest) returns (TaskResponse) {
+    option (api.post) = "/api/v1/task";
+  }
+
+  // 获取任务状态
+  rpc GetTaskStatus(TaskStatusRequest) returns (TaskStatusResponse) {
+    option (api.get) = "/api/v1/tasks/:task_id";
+  }
+
+  // 取消任务
+  rpc CancelTask(TaskCancelRequest) returns (TaskCancelResponse) {
+    option (api.delete) = "/api/v1/tasks/:task_id";
+  }
+
+  // 发送心跳
+  rpc SendHeartbeat(HeartbeatRequest) returns (HeartbeatResponse) {
+    option (api.post) = "/api/v1/heartbeat/:agent_id";
+  }
+
+  // 更新配置
+  rpc UpdateConfig(ConfigUpdateRequest) returns (ConfigUpdateResponse) {
+    option (api.post) = "/api/v1/config";
+  }
+
+  // 健康检查
+  rpc HealthCheck(Empty) returns (HealthResponse) {
+    option (api.get) = "/health";
+  }
+
+  // 就绪检查
+  rpc ReadyCheck(Empty) returns (HealthResponse) {
+    option (api.get) = "/ready";
+  }
+}
+
+// 告警规则服务
+service AlertRuleService {
+  // 创建告警规则
+  rpc CreateAlertRule(AlertRuleRequest) returns (AlertRuleResponse) {
+    option (api.post) = "/api/alert-rules";
+  }
+
+  // 更新告警规则
+  rpc UpdateAlertRule(AlertRuleRequest) returns (AlertRuleResponse) {
+    option (api.put) = "/api/alert-rules";
+  }
+
+  // 删除告警规则
+  rpc DeleteAlertRule(AlertRuleRequest) returns (AlertRuleResponse) {
+    option (api.delete) = "/api/alert-rules";
+  }
+
+  // 获取告警规则
+  rpc GetAlertRule(AlertRuleRequest) returns (AlertRuleResponse) {
+    option (api.get) = "/api/alert-rules/:name";
+  }
+
+  // 获取告警规则列表
+  rpc ListAlertRule(AlertRuleRequest) returns (AlertRuleResponse) {
+    option (api.get) = "/api/alert-rules";
+  }
+
+  // 同步告警规则
+  rpc SyncAlertRule(AlertRuleRequest) returns (AlertRuleResponse) {
+    option (api.post) = "/api/alert-rules/sync";
+  }
+}
