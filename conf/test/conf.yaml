@@ -15,7 +15,7 @@ hertz:
 # Candy-Server 配置
 candy_server:
   url: "http://candy-server:18080"
-  api_key: "sangfor.api.key"
+  api_key: "api.key"
 
 # Agent 配置
 agent:
@@ -30,8 +30,8 @@ executors:
     timeout: 15 # 秒
 
   vm:
-    url: "http://10.103.0.4:30427"
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJUZW5hbnROYW1lIjoiMTNlNTY1NTVjYzI0MDYyMDI0YmYyZjNhOTdjZDVlNTciLCJpYXQiOjE2OTU4NzAzNDcsImlzcyI6InZpY3RvcmlhbWV0cmljIn0.SScJNyvs3CA37kBr5SJc_66VSW9Mv_7GENBgfbNGFTg"
+    url: "http://127.0.0.1:30427"
+    token: ""
     timeout: 15 # 秒
 
   ssh:
